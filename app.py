@@ -138,9 +138,7 @@ def admin_dashboard():
             try:
                 db_df = db_handler.get_all_user_logins()
                 if not db_df.empty:
-                    # Synthesize a 'Log Message' column compatible with the ML engine
-                    db_df['Log Message'] = db_df['login_time'].astype(str) + " Info: User " + db_df['email'] + " logged in"
-                    st.session_state['uploaded_df'] = db_df[['Log Message']] # Keep only relevant column for consistency
+                    st.session_state['uploaded_df'] = db_df
                     st.success(f"Loaded {len(db_df)} records from live database!")
                 else:
                     st.warning("No login records found in database.")
@@ -153,19 +151,23 @@ def admin_dashboard():
             st.write(f"Total Rows Loaded: {len(df)}")
             st.dataframe(df.head(), use_container_width=True)
             
-            if 'Log Message' not in df.columns:
-                st.warning("Data must have a 'Log Message' column.")
+            target_col = 'Log Message'
+            if 'Log Message' not in df.columns and 'email' in df.columns:
+                target_col = 'email'
+            
+            if target_col not in df.columns:
+                st.warning("Data must have a 'Log Message' or 'email' column.")
             else:
                 n_clusters = st.slider("Number of Clusters", 2, 10, 3)
                 
                 if st.button("Apply ML Clustering"):
-                    with st.spinner("Processing..."):
-                        clustered_df = ml_engine.cluster_logs(df.copy(), n_clusters)
-                        noise_reduced_df = ml_engine.identify_noise(clustered_df)
+                    with st.spinner(f"Processing using '{target_col}'..."):
+                        clustered_df = ml_engine.cluster_logs(df.copy(), n_clusters, target_col=target_col)
+                        noise_reduced_df = ml_engine.identify_noise(clustered_df, target_col=target_col)
                         
                         st.session_state['clustered_df'] = clustered_df
                         st.session_state['noise_reduced_df'] = noise_reduced_df
-                        st.success(f"Processing Complete! Processed {len(clustered_df)} logs.")
+                        st.success(f"Processing Complete! Processed {len(clustered_df)} logs using '{target_col}'.")
 
         if 'clustered_df' in st.session_state and 'noise_reduced_df' in st.session_state:
             tab1, tab2 = st.tabs(["Clustered Logs", "Noise Reduced Results"])

@@ -17,16 +17,17 @@ def clean_log(log_message):
     log_message = re.sub(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', '<IP>', log_message)
     return log_message.strip()
 
-def cluster_logs(df, n_clusters=5):
+def cluster_logs(df, n_clusters=5, target_col='Log Message'):
     """
     Clusters logs using TF-IDF and KMeans.
-    Expects df to have a 'Log Message' column.
+    Expects df to have the target_col column.
     """
-    if 'Log Message' not in df.columns:
-        raise ValueError("DataFrame must contain 'Log Message' column")
+    if target_col not in df.columns:
+        raise ValueError(f"DataFrame must contain '{target_col}' column")
     
     # Clean logs for processing
-    df['Cleaned Log'] = df['Log Message'].apply(clean_log)
+    # If using email, cleaning might not be strictly necessary, but good for consistency
+    df['Cleaned Log'] = df[target_col].apply(str).apply(clean_log)
     
     # Vectorize
     vectorizer = TfidfVectorizer(stop_words='english')
@@ -35,14 +36,16 @@ def cluster_logs(df, n_clusters=5):
     # Cluster
     # Adjust n_clusters if dataset is small
     true_k = min(n_clusters, len(df))
-    model = KMeans(n_clusters=true_k, init='k-means++', max_iter=100, n_init='auto')
-    model.fit(X)
-    
-    df['Cluster'] = model.labels_
+    if true_k > 0:
+        model = KMeans(n_clusters=true_k, init='k-means++', max_iter=100, n_init='auto')
+        model.fit(X)
+        df['Cluster'] = model.labels_
+    else:
+         df['Cluster'] = 0
     
     return df
 
-def identify_noise(df):
+def identify_noise(df, target_col='Log Message'):
     """
     Identifies noise by finding duplicates within clusters or generally.
     Returns a dataframe with 'Noise Reduced' items (unique representative).
@@ -58,8 +61,15 @@ def identify_noise(df):
     # We take the first original log message that maps to the cleaned log
     representatives = []
     for index, row in noise_summary.iterrows():
-        original = df[df['Cleaned Log'] == row['Cleaned Log']]['Log Message'].iloc[0]
-        representatives.append(original)
+        # Cleaned Log matches, get the first original text
+        subset = df[df['Cleaned Log'] == row['Cleaned Log']]
+        if not subset.empty:
+            original = subset[target_col].iloc[0]
+            representatives.append(original)
+        else:
+            representatives.append("N/A")
+    
+    noise_summary['Representative Log'] = representatives
     
     noise_summary['Representative Log'] = representatives
     
