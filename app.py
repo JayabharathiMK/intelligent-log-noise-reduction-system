@@ -134,6 +134,19 @@ def admin_dashboard():
             except Exception as e:
                 st.error(f"Error reading file: {e}")
         
+        if st.button("Load Real-time Logins from DB"):
+            try:
+                db_df = db_handler.get_all_user_logins()
+                if not db_df.empty:
+                    # Synthesize a 'Log Message' column compatible with the ML engine
+                    db_df['Log Message'] = db_df['login_time'].astype(str) + " Info: User " + db_df['email'] + " logged in"
+                    st.session_state['uploaded_df'] = db_df[['Log Message']] # Keep only relevant column for consistency
+                    st.success(f"Loaded {len(db_df)} records from live database!")
+                else:
+                    st.warning("No login records found in database.")
+            except Exception as e:
+                st.error(f"Error loading from DB: {e}")
+        
         if 'uploaded_df' in st.session_state:
             df = st.session_state['uploaded_df']
             st.subheader("Raw Data Preview (First 5 Rows)")
