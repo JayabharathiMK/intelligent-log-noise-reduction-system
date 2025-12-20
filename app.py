@@ -136,7 +136,8 @@ def admin_dashboard():
         
         if 'uploaded_df' in st.session_state:
             df = st.session_state['uploaded_df']
-            st.subheader("Raw Data Preview")
+            st.subheader("Raw Data Preview (First 5 Rows)")
+            st.write(f"Total Rows Loaded: {len(df)}")
             st.dataframe(df.head(), use_container_width=True)
             
             if 'Log Message' not in df.columns:
@@ -151,7 +152,7 @@ def admin_dashboard():
                         
                         st.session_state['clustered_df'] = clustered_df
                         st.session_state['noise_reduced_df'] = noise_reduced_df
-                        st.success("Processing Complete!")
+                        st.success(f"Processing Complete! Processed {len(clustered_df)} logs.")
 
         if 'clustered_df' in st.session_state and 'noise_reduced_df' in st.session_state:
             tab1, tab2 = st.tabs(["Clustered Logs", "Noise Reduced Results"])
