@@ -9,26 +9,100 @@ db_handler.init_db()
 
 st.set_page_config(page_title="Intelligent Log Noise Reduction", layout="wide")
 
-# Custom CSS for styling
+# Custom CSS for modern styling
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+    
     .main {
-        background-color: #f0f2f6;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
-    .stButton>button {
-        width: 100%;
-        border-radius: 5px;
-        height: 3em;
-        background-color: #4CAF50; 
+    
+    .stApp {
+        background: radial-gradient(circle at top right, rgba(74, 144, 226, 0.05), transparent),
+                    radial-gradient(circle at bottom left, rgba(80, 227, 194, 0.05), transparent);
+    }
+
+    div.stButton > button {
+        background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%);
         color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 100%;
     }
+    
+    div.stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        background: linear-gradient(90deg, #357ABD 0%, #286090 100%);
+    }
+
+    .title-container {
+        padding: 3rem 1rem;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
     .title-text {
-        color: #2c3e50;
+        font-weight: 800;
+        background: -webkit-linear-gradient(#2c3e50, #4A90E2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         text-align: center;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
     }
-    .sidebar .sidebar-content {
+
+    .subtitle-text {
+        color: #5d6d7e;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 400;
+        margin-top: 0;
+    }
+
+    .card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+
+    [data-testid="stHeader"] {
+        background: rgba(0,0,0,0);
+    }
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+        background-color: transparent;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: #f8f9fa;
+        border-radius: 10px 10px 0px 0px;
+        gap: 1px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .stTabs [aria-selected="true"] {
         background-color: #ffffff;
+        border-bottom: 2px solid #4A90E2;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -41,7 +115,12 @@ if 'email' not in st.session_state:
     st.session_state['email'] = ""
 
 def login_page():
-    st.markdown("<h1 class='title-text'>Intelligent Log Noise Reduction System</h1>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class='title-container'>
+        <h1 class='title-text'>Intelligent Log Noise Reduction System</h1>
+        <p class='subtitle-text'>Harnessing AI to clarify your system's observability</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1,2,1])
     
@@ -81,8 +160,12 @@ def login_page():
                     st.warning("Please enter an email address")
 
 def user_dashboard():
-    st.markdown(f"<h2 class='title-text'>Welcome, {st.session_state['email']}</h2>", unsafe_allow_html=True)
-    st.info("You have successfully accessed the Intelligent Log System.")
+    st.markdown(f"""
+    <div class='title-container'>
+        <h2 class='title-text'>Welcome back, {st.session_state['email']}</h2>
+        <p class='subtitle-text'>Successfully authenticated to the Log Intelligence Hub</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("### About the System")
     st.write("This system uses machine learning to analyze log files, cluster similar entries, and reduce noise for better observability.")
