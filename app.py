@@ -169,6 +169,43 @@ st.markdown("""
         border-radius: 12px;
         padding: 10px;
     }
+
+    /* File Uploader visibility fix - Indigo buttons with white text */
+    [data-testid="stFileUploader"] {
+        background-color: #1e293b !important;
+        border: 2px dashed #334155 !important;
+        border-radius: 15px !important;
+        padding: 20px !important;
+    }
+
+    [data-testid="stFileUploader"] section button {
+        background-color: #6366f1 !important;
+        color: #ffffff !important;
+        border: 2px solid #818cf8 !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+        padding: 10px 30px !important;
+        cursor: pointer !important;
+        display: inline-block !important;
+    }
+
+    /* Target the text more specifically */
+    [data-testid="stFileUploader"] section button div {
+        color: #ffffff !important;
+    }
+
+    [data-testid="stFileUploader"] section button:hover {
+        background-color: #4f46e5 !important;
+        border-color: #ffffff !important;
+    }
+
+    [data-testid="stFileUploadDropzone"] {
+        background-color: transparent !important;
+    }
+
+    [data-testid="stFileUploader"] small {
+        color: #94a3b8 !important;
+    }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -322,16 +359,17 @@ def admin_dashboard():
             st.write(f"Total Rows Loaded: {len(df)}")
             st.dataframe(df.head(), use_container_width=True)
             
-            target_col = 'Log Message'
-            if 'Log Message' not in df.columns and 'email' in df.columns:
-                target_col = 'email'
+            # Auto-detect best column or let user select
+            available_cols = list(df.columns)
+            default_ix = 0
+            if 'Log Message' in available_cols: default_ix = available_cols.index('Log Message')
+            elif 'email' in available_cols: default_ix = available_cols.index('email')
             
-            if target_col not in df.columns:
-                st.warning("Data must have a 'Log Message' or 'email' column.")
-            else:
-                n_clusters = st.slider("Number of Clusters", 2, 10, 3)
-                
-                if st.button("Apply ML Clustering"):
+            target_col = st.selectbox("Select column to analyze", available_cols, index=default_ix)
+            
+            n_clusters = st.slider("Number of Clusters", 2, 10, 3)
+            
+            if st.button("Apply ML Clustering"):
                     with st.spinner(f"Processing using '{target_col}'..."):
                         clustered_df = ml_engine.cluster_logs(df.copy(), n_clusters, target_col=target_col)
                         noise_reduced_df = ml_engine.identify_noise(clustered_df, target_col=target_col)
@@ -399,17 +437,30 @@ def admin_dashboard():
             df_b = pd.read_csv(baseline_file)
             df_c = pd.read_csv(current_file)
             
-            target_col = 'Log Message' if 'Log Message' in df_b.columns else 'email'
+            # Find common columns for comparison
+            common_cols = list(set(df_b.columns).intersection(set(df_c.columns)))
             
-            if st.button("Run Delta Comparison"):
-                with st.spinner("Analyzing differences..."):
-                    delta_df = ml_engine.compare_log_sets(df_b, df_c, target_col=target_col)
-                    if not delta_df.empty:
-                        st.subheader("⚠️ New Patterns Detected")
-                        st.write("These log patterns were NOT present in the baseline set.")
-                        st.dataframe(delta_df, use_container_width=True)
-                    else:
-                        st.success("No new patterns detected. System is stable compared to baseline.")
+            if not common_cols:
+                st.error("The two files have no identical column names. They must share at least one column (e.g., 'Log Message') to be compared.")
+            else:
+                default_ix = 0
+                if 'Log Message' in common_cols: default_ix = common_cols.index('Log Message')
+                elif 'email' in common_cols: default_ix = common_cols.index('email')
+                
+                target_col = st.selectbox("Select column to compare", common_cols, index=default_ix)
+                
+                if st.button("Run Delta Comparison"):
+                    with st.spinner("Analyzing differences..."):
+                        try:
+                            delta_df = ml_engine.compare_log_sets(df_b, df_c, target_col=target_col)
+                            if not delta_df.empty:
+                                st.subheader("⚠️ New Patterns Detected")
+                                st.write("These log patterns were NOT present in the baseline set.")
+                                st.dataframe(delta_df, use_container_width=True)
+                            else:
+                                st.success("No new patterns detected. System is stable compared to baseline.")
+                        except Exception as e:
+                            st.error(f"Analysis Error: {e}")
 
     elif menu == "Health Dashboard":
         st.header("System Health Analytics")
