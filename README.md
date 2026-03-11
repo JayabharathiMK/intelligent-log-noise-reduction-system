@@ -13,12 +13,13 @@ A robust, web-based application powered by **Machine Learning** to accept system
 - **Login system**: Simple email-based login for users.
 - **Welcome Dashboard**: Personalized landing page for general users.
 
-### 🛡️ Admin Dashboard (Secure)
-- **Role-Based Access**: Dedicated login for Administrators.
+### 🛡️ Admin Dashboard (Enterprise Grade)
+- **Health Dashboard**: Visual analytics with **Interactive Plotly Charts** showing cluster distributions and noise reduction KPIs.
 - **Log Processing**: Upload raw CSV log files for analysis.
 - **ML Clustering**: Uses **TF-IDF Vectorization** and **K-Means Clustering** to group similar logs.
-- **Noise Reduction**: Automatically identifies and collapses repetitive log patterns.
-- **Data Export**: Download processed results (Clustered Logs & Noise Reports) as CSV files.
+- **Delta Comparison (Regression)**: Compare "Baseline" vs "Current" logs to automatically detect **New Issue Patterns**.
+- **Professional Reporting**: Generate and download **Multi-Sheet Excel Reports (.xlsx)** with summary metrics and raw data.
+- **Data Export**: Download results as CSV or Enterprise Excel files.
 - **User Management**: View a history of all user logins.
 
 ---

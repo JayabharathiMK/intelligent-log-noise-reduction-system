@@ -3,6 +3,9 @@ import pandas as pd
 import db_handler
 import ml_engine
 import io
+import plotly.express as px
+import plotly.graph_objects as go
+import re
 
 # Initialize DB on start
 db_handler.init_db()
@@ -18,67 +21,80 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    .main {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    }
-    
     .stApp {
-        background: radial-gradient(circle at top right, rgba(74, 144, 226, 0.05), transparent),
-                    radial-gradient(circle at bottom left, rgba(80, 227, 194, 0.05), transparent);
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        color: #f8fafc;
     }
 
-    div.stButton > button {
-        background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%);
-        color: white;
-        border: none;
-        padding: 0.6rem 1.2rem;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    [data-testid="stSidebar"] {
+        background-color: rgba(15, 23, 42, 0.95) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    div.stButton > button, div.stDownloadButton > button {
+        background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+        color: #ffffff !important;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        padding: 0.8rem 1.5rem;
+        border-radius: 14px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
         width: 100%;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-top: 10px;
     }
     
-    div.stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        background: linear-gradient(90deg, #357ABD 0%, #286090 100%);
+    div.stButton > button:hover, div.stDownloadButton > button:hover {
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: 0 0 35px rgba(0, 210, 255, 0.7);
+        background: linear-gradient(90deg, #3a7bd5 0%, #00d2ff 100%);
+        border: 2px solid #ffffff;
     }
 
     .title-container {
-        padding: 3rem 1rem;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
     }
 
     .title-text {
         font-weight: 800;
-        background: -webkit-linear-gradient(#2c3e50, #4A90E2);
+        background: linear-gradient(135deg, #6366f1 0%, #ec4899 50%, #8b5cf6 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-align: center;
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.2;
     }
 
     .subtitle-text {
-        color: #5d6d7e;
-        text-align: center;
-        font-size: 1.1rem;
+        color: #94a3b8;
+        font-size: 1.2rem;
         font-weight: 400;
-        margin-top: 0;
+        max-width: 600px;
+        margin: 0 auto;
     }
 
     .card {
-        background: white;
-        padding: 2rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        background: rgba(30, 41, 59, 0.7);
+        padding: 2.5rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         margin-bottom: 1.5rem;
+        backdrop-filter: blur(5px);
+    }
+
+    h1, h2, h3, p, span, div {
+        color: #f1f5f9 !important;
     }
 
     [data-testid="stHeader"] {
@@ -86,23 +102,73 @@ st.markdown("""
     }
 
     .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
+        gap: 15px;
         background-color: transparent;
+        padding: 10px 0;
     }
 
     .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: #f8f9fa;
-        border-radius: 10px 10px 0px 0px;
-        gap: 1px;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        height: 55px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        color: #94a3b8 !important;
+        padding: 0 25px;
+        transition: all 0.3s ease;
     }
 
     .stTabs [aria-selected="true"] {
-        background-color: #ffffff;
-        border-bottom: 2px solid #4A90E2;
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+        border-bottom: 3px solid #6366f1 !important;
+        color: #ffffff !important;
+    }
+
+    /* Selectbox and Input styling */
+    div[data-baseweb="select"] > div, div[data-baseweb="input"] > div {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border-radius: 12px !important;
+    }
+
+    div[data-baseweb="select"] div, div[data-baseweb="input"] input {
+        color: white !important;
+    }
+
+    [data-testid="stMarkdownContainer"] p {
+        color: #f1f5f9 !important;
+    }
+
+    /* Fix dropdown list visibility - Dark background with white text */
+    div[data-baseweb="popover"] {
+        background-color: #1e293b !important;
+    }
+
+    div[data-baseweb="popover"] * {
+        background-color: transparent !important;
+        color: #ffffff !important;
+    }
+    
+    ul[role="listbox"] {
+        background-color: #1e293b !important;
+    }
+
+    li[role="option"] {
+        background-color: transparent !important;
+        color: #ffffff !important;
+        padding: 10px !important;
+    }
+
+    li[role="option"]:hover {
+        background-color: #334155 !important;
+        color: #00d2ff !important;
+    }
+
+    /* DataFrame styling */
+    [data-testid="stDataFrame"] {
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 12px;
+        padding: 10px;
+    }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -113,6 +179,11 @@ if 'user_role' not in st.session_state:
     st.session_state['user_role'] = None
 if 'email' not in st.session_state:
     st.session_state['email'] = ""
+
+def is_valid_email(email):
+    """Simple regex to check if string follows email format."""
+    pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(pattern, email) is not None
 
 def login_page():
     st.markdown("""
@@ -150,25 +221,37 @@ def login_page():
                     st.error("Invalid Admin Credentials (Try admin@example.com / admin)")
         else:
             if st.button("Login"):
-                if email:
-                    st.session_state['logged_in'] = True
-                    st.session_state['user_role'] = "User"
-                    st.session_state['email'] = email
-                    db_handler.log_user_login(email)
-                    st.rerun()
+                if email.strip():
+                    if is_valid_email(email.strip()):
+                        st.session_state['logged_in'] = True
+                        st.session_state['user_role'] = "User"
+                        st.session_state['email'] = email
+                        db_handler.log_user_login(email)
+                        st.rerun()
+                    else:
+                        st.error("Invalid email format. Please use 'user@example.com'.")
                 else:
                     st.warning("Please enter an email address")
 
 def user_dashboard():
     st.markdown(f"""
     <div class='title-container'>
-        <h2 class='title-text'>Welcome back, {st.session_state['email']}</h2>
-        <p class='subtitle-text'>Successfully authenticated to the Log Intelligence Hub</p>
+        <h2 class='title-text'>User Access & Intelligence Portal</h2>
+        <p class='subtitle-text'>Welcome, <b>{st.session_state['email']}</b>. Thank you for authenticating with the system.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("### About the System")
-    st.write("This system uses machine learning to analyze log files, cluster similar entries, and reduce noise for better observability.")
+    st.markdown("""
+    <div class='card'>
+        <h3>System Purpose & Log Capture</h3>
+        <p>This platform serves as a <b>Log Capture Node</b> for the Intelligent Log Noise Reduction System. 
+        Your successful login contributes to the <i>User Login History</i>, which is utilized by our 
+        Machine Learning engine to identify patterns, cluster access behavior, and reduce operational noise.</p>
+        <hr>
+        <p><b>Note:</b> For advanced log processing, clustering reports, and system-wide analysis, 
+        please consult the Administrative Dashboard.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     if st.button("Logout"):
         st.session_state.clear()
@@ -176,7 +259,12 @@ def user_dashboard():
 
 def admin_dashboard():
     st.sidebar.title("Admin Dashboard")
-    menu = st.sidebar.radio("Navigation", ["Upload & Process Logs", "View User Logins"])
+    menu = st.sidebar.radio("Navigation", [
+        "Health Dashboard", 
+        "Upload & Process Logs", 
+        "Comparison Analysis (Delta)",
+        "View User Logins"
+    ])
     
     if st.button("Logout", key='logout_btn'):
         st.session_state.clear()
@@ -270,6 +358,91 @@ def admin_dashboard():
                 
                 csv_noise = st.session_state['noise_reduced_df'].to_csv(index=False).encode('utf-8')
                 st.download_button("Download Noise Report", csv_noise, "noise_report.csv", "text/csv")
+
+        # Professional Excel Export Utility
+        if 'clustered_df' in st.session_state:
+            st.divider()
+            if st.button("Generate Enterprise Excel Report"):
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    # Write summary
+                    summary_df = pd.DataFrame({
+                        'Metric': ['Total Logs Processed', 'Unique Patterns Found', 'Noise Reduction %'],
+                        'Value': [
+                            len(st.session_state['clustered_df']),
+                            len(st.session_state['noise_reduced_df']),
+                            f"{((1 - len(st.session_state['noise_reduced_df'])/len(st.session_state['clustered_df']))*100):.2f}%"
+                        ]
+                    })
+                    summary_df.to_excel(writer, sheet_name='Summary', index=False)
+                    st.session_state['clustered_df'].to_excel(writer, sheet_name='Raw Clusters', index=False)
+                    st.session_state['noise_reduced_df'].to_excel(writer, sheet_name='Noise Report', index=False)
+                
+                st.download_button(
+                    label="📥 Download Professional Report (.xlsx)",
+                    data=output.getvalue(),
+                    file_name="enterprise_log_analysis.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+    elif menu == "Comparison Analysis (Delta)":
+        st.header("Regression & Delta Analysis")
+        st.write("Compare a **Baseline** log set with a **Current** set to identify new issues.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            baseline_file = st.file_uploader("Upload Baseline Logs (e.g. Previous Week)", type=['csv'], key='baseline')
+        with col2:
+            current_file = st.file_uploader("Upload Current Logs (e.g. This Week)", type=['csv'], key='current')
+            
+        if baseline_file and current_file:
+            df_b = pd.read_csv(baseline_file)
+            df_c = pd.read_csv(current_file)
+            
+            target_col = 'Log Message' if 'Log Message' in df_b.columns else 'email'
+            
+            if st.button("Run Delta Comparison"):
+                with st.spinner("Analyzing differences..."):
+                    delta_df = ml_engine.compare_log_sets(df_b, df_c, target_col=target_col)
+                    if not delta_df.empty:
+                        st.subheader("⚠️ New Patterns Detected")
+                        st.write("These log patterns were NOT present in the baseline set.")
+                        st.dataframe(delta_df, use_container_width=True)
+                    else:
+                        st.success("No new patterns detected. System is stable compared to baseline.")
+
+    elif menu == "Health Dashboard":
+        st.header("System Health Analytics")
+        if 'clustered_df' not in st.session_state:
+            st.info("Please process logs in the 'Upload & Process Logs' section first.")
+        else:
+            df = st.session_state['clustered_df']
+            noise_df = st.session_state['noise_reduced_df']
+            
+            # KPI Row
+            kpi1, kpi2, kpi3 = st.columns(3)
+            with kpi1:
+                st.metric("Total Logs", len(df))
+            with kpi2:
+                noise_red = (1 - len(noise_df)/len(df)) * 100
+                st.metric("Noise Reduction", f"{noise_red:.1f}%", delta=f"{len(df) - len(noise_df)} removed")
+            with kpi3:
+                st.metric("Unique Patterns", len(noise_df))
+            
+            # Charts
+            c1, c2 = st.columns(2)
+            with c1:
+                st.subheader("Cluster Distribution")
+                fig = px.pie(noise_df, values='Count', names='Cluster', hole=.3,
+                            color_discrete_sequence=px.colors.sequential.RdBu)
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with c2:
+                st.subheader("Frequency of Patterns")
+                fig = px.bar(noise_df.head(10), x='Count', y='Cleaned Log', 
+                            orientation='h', color='Count',
+                            labels={'Cleaned Log': 'Pattern Signature'})
+                st.plotly_chart(fig, use_container_width=True)
 
 if not st.session_state['logged_in']:
     login_page()

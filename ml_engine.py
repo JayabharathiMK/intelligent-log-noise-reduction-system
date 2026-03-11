@@ -47,33 +47,54 @@ def cluster_logs(df, n_clusters=5, target_col='Log Message'):
 
 def identify_noise(df, target_col='Log Message'):
     """
-    Identifies noise by finding duplicates within clusters or generally.
-    Returns a dataframe with 'Noise Reduced' items (unique representative).
+    Identifies noise by finding exact duplicates of actual log messages within clusters.
+    This version keeps column names 'Count' and 'Representative Log' for 
+    compatibility with the UI while ensuring specific IDs are not grouped together.
     """
-    if 'Cluster' not in df.columns:
+    if 'Cluster' not in df.columns or df.empty:
         return df
     
-    # For each cluster, we can pick one representative or aggregate.
-    # Here, we will just count occurrences to show noise level.
-    noise_summary = df.groupby(['Cluster', 'Cleaned Log']).size().reset_index(name='Count')
+    # We group by the original email/log to keep 020 and 045 separate
+    noise_summary = df.groupby(['Cluster', target_col, 'Cleaned Log']).size().reset_index(name='Count')
     
-    # Get representative original log for each cleaned log group
-    # We take the first original log message that maps to the cleaned log
-    representatives = []
-    for index, row in noise_summary.iterrows():
-        # Cleaned Log matches, get the first original text
-        subset = df[df['Cleaned Log'] == row['Cleaned Log']]
-        if not subset.empty:
-            original = subset[target_col].iloc[0]
-            representatives.append(original)
-        else:
-            representatives.append("N/A")
+    # Rename the original log column to 'Representative Log' for the UI
+    noise_summary = noise_summary.rename(columns={target_col: 'Representative Log'})
     
-    noise_summary['Representative Log'] = representatives
-    
-    noise_summary['Representative Log'] = representatives
-    
-    # Sort by count to show most frequent (noisy) logs
+    # Sort by frequency to show most frequent logs at top
     noise_summary = noise_summary.sort_values(by='Count', ascending=False)
     
-    return noise_summary
+    # Ensure columns are in the expected order for the UI table
+    cols = ['Cluster', 'Cleaned Log', 'Count', 'Representative Log']
+    return noise_summary[cols]
+
+def compare_log_sets(df_baseline, df_current, n_clusters=5, target_col='Log Message'):
+    """
+    Compares two sets of logs and identifies 'New Patterns' in the current set
+    that were not present in the baseline.
+    """
+    if df_baseline.empty or df_current.empty:
+        return pd.DataFrame()
+
+    # Process baseline to get unique patterns
+    baseline_clustered = cluster_logs(df_baseline.copy(), n_clusters, target_col)
+    baseline_patterns = set(baseline_clustered['Cleaned Log'].unique())
+
+    # Process current
+    current_clustered = cluster_logs(df_current.copy(), n_clusters, target_col)
+    
+    # Identify logs in current that don't match any pattern in baseline
+    current_clustered['Is New Pattern'] = current_clustered['Cleaned Log'].apply(
+        lambda x: x not in baseline_patterns
+    )
+    
+    # Filter to show only new patterns
+    new_patterns = current_clustered[current_clustered['Is New Pattern']].copy()
+    
+    if new_patterns.empty:
+        return pd.DataFrame()
+
+    # Group by the new patterns to show a summary
+    new_summary = new_patterns.groupby(['Cleaned Log', target_col]).size().reset_index(name='Occurrences')
+    new_summary = new_summary.rename(columns={target_col: 'Example Log'})
+    
+    return new_summary.sort_values(by='Occurrences', ascending=False)

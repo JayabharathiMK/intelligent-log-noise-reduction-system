@@ -27,4 +27,6 @@
 - **pandas**: For data manipulation and CSV processing.
 - **scikit-learn**: For TF-IDF vectorization and K-Means clustering.
 - **numpy**: For numerical operations.
-- **matplotlib**: For data visualization (if charts are extended).
+- **matplotlib**: For static data visualization.
+- **plotly**: For interactive health dashboards.
+- **xlsxwriter**: For generating multi-sheet enterprise Excel reports.
