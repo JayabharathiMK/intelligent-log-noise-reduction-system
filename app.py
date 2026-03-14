@@ -447,6 +447,15 @@ def admin_dashboard():
             df_b = pd.read_csv(baseline_file)
             df_c = pd.read_csv(current_file)
             
+            # Show previews
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write("**Baseline Preview:**")
+                st.dataframe(df_b.head(3), use_container_width=True)
+            with col2:
+                st.write("**Current Logs Preview:**")
+                st.dataframe(df_c.head(3), use_container_width=True)
+            
             # Find common columns for comparison
             common_cols = list(set(df_b.columns).intersection(set(df_c.columns)))
             
