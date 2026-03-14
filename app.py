@@ -122,16 +122,26 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* Selectbox and Input styling */
-    div[data-baseweb="select"] > div, div[data-baseweb="input"] > div {
+    /* Selectbox styling */
+    div[data-baseweb="select"] > div {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         color: white !important;
         border-radius: 12px !important;
     }
-
-    div[data-baseweb="select"] div, div[data-baseweb="input"] input {
+    div[data-baseweb="select"] div {
         color: white !important;
+    }
+
+    /* Input styling - Black text and light background */
+    div[data-baseweb="input"] > div {
+        background-color: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 12px !important;
+    }
+    div[data-baseweb="input"] input {
+        color: #000000 !important;
+        font-weight: 500 !important;
     }
 
     [data-testid="stMarkdownContainer"] p {
