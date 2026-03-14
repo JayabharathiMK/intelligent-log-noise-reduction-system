@@ -187,13 +187,9 @@ st.markdown("""
         padding: 4px !important;
     }
     
+    [data-testid="stElementToolbar"] button, 
     [data-testid="stElementToolbar"] button svg {
         color: #0f172a !important;
-        stroke: #0f172a !important;
-    }
-
-    [data-testid="stElementToolbar"] button svg path {
-        fill: currentColor;
     }
 
     /* Fix tooltip visibility (when hovering over icons) */
