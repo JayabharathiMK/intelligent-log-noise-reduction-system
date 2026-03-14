@@ -180,6 +180,15 @@ st.markdown("""
         padding: 10px;
     }
 
+    /* DataFrame toolbar icons (download, search, fullscreen) visible in black */
+    [data-testid="stElementToolbar"] button,
+    [data-testid="stElementToolbar"] svg,
+    [data-testid="stDataFrame"] [data-testid="stElementToolbar"] * {
+        color: #000000 !important;
+        fill: #000000 !important;
+        stroke: #000000 !important;
+    }
+
     /* File Uploader visibility fix - Indigo buttons with white text */
     [data-testid="stFileUploader"] {
         background-color: #1e293b !important;
