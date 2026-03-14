@@ -180,13 +180,29 @@ st.markdown("""
         padding: 10px;
     }
 
-    /* DataFrame toolbar icons (download, search, fullscreen) visible in black */
-    [data-testid="stElementToolbar"] button,
-    [data-testid="stElementToolbar"] svg,
-    [data-testid="stDataFrame"] [data-testid="stElementToolbar"] * {
-        color: #000000 !important;
-        fill: #000000 !important;
-        stroke: #000000 !important;
+    /* DataFrame toolbar icons visibility */
+    [data-testid="stElementToolbar"] {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+    }
+    
+    [data-testid="stElementToolbar"] button svg {
+        color: #0f172a !important;
+        stroke: #0f172a !important;
+    }
+
+    [data-testid="stElementToolbar"] button svg path {
+        fill: currentColor;
+    }
+
+    /* Fix tooltip visibility (when hovering over icons) */
+    div[data-baseweb="tooltip"] {
+        background-color: #1e293b !important;
+    }
+    div[data-baseweb="tooltip"] div {
+        color: #ffffff !important;
+        background-color: transparent !important;
     }
 
     /* File Uploader visibility fix - Indigo buttons with white text */
@@ -460,10 +476,10 @@ def admin_dashboard():
             col1, col2 = st.columns(2)
             with col1:
                 st.write("**Baseline Preview:**")
-                st.dataframe(df_b.head(3), use_container_width=True)
+                st.dataframe(df_b, use_container_width=True)
             with col2:
                 st.write("**Current Logs Preview:**")
-                st.dataframe(df_c.head(3), use_container_width=True)
+                st.dataframe(df_c, use_container_width=True)
             
             # Find common columns for comparison
             common_cols = list(set(df_b.columns).intersection(set(df_c.columns)))
